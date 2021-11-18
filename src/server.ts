@@ -13,7 +13,7 @@ import filePath from "./filePath";
 
 // loading in some dummy items into the database
 // (comment out if desired, or change the number)
-addDummyTasks(20);
+addDummyTasks(21);
 
 const app = express();
 
