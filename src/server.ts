@@ -19,6 +19,11 @@ console.log({ config, connectToHeroku, nodeEnv: process.env.NODE_ENV });
 
 const client = new Client(config);
 
+async function clientConnect() {
+  await client.connect();
+}
+clientConnect();
+
 const app = express();
 
 app.use(express.json());
