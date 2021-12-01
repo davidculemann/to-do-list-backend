@@ -3,15 +3,26 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { Client } from "pg";
 
+dotenv.config();
+
+const connectToHeroku = process.env.NODE_ENV === "production";
+
+const config = {
+  connectionString: process.env.DATABASE_URL,
+  ssl: connectToHeroku
+    ? {
+        rejectUnauthorized: false,
+      }
+    : false,
+};
+console.log({ config, connectToHeroku, nodeEnv: process.env.NODE_ENV });
+
+const client = new Client(config);
+
 const app = express();
-const client = new Client({
-  database: "tododb",
-  // connectionString: process.env.DATABASE_URL,
-});
 
 app.use(express.json());
 app.use(cors());
-dotenv.config();
 
 export interface Task {
   name: string;
