@@ -1,84 +1,65 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import {
-  addDummyTasks,
-  addTask,
-  getAllTasks,
-  getTaskById,
-  Task,
-  updateTaskById,
-} from "./db";
-import filePath from "./filePath";
-
-// loading in some dummy items into the database
-// (comment out if desired, or change the number)
-addDummyTasks(21);
+import { Client } from "pg";
 
 const app = express();
-
-/** Parses JSON data in a request automatically */
-app.use(express.json());
-/** To allow 'Cross-Origin Resource Sharing': https://en.wikipedia.org/wiki/Cross-origin_resource_sharing */
-app.use(cors());
-
-// read in contents of any environment variables in the .env file
-dotenv.config();
-
-// use the environment variable PORT, or 4000 as a fallback
-const PORT_NUMBER = process.env.PORT ?? 4000;
-
-// API info page
-app.get("/", (req, res) => {
-  const pathToFile = filePath("../public/index.html");
-  res.sendFile(pathToFile);
+const client = new Client({
+  connectionString: process.env.DATABASE_URL,
 });
 
+app.use(express.json());
+app.use(cors());
+dotenv.config();
+
+export interface Task {
+  name: string;
+  due: Date;
+}
+
+//===================ROUTES==========================
+
+// app.get("/", (req, res) => {
+//   const pathToFile = filePath("../public/index.html");
+//   res.sendFile(pathToFile);
+// });
+
 // GET /items
-app.get("/items", (req, res) => {
-  const allSignatures = getAllTasks();
-  res.status(200).json(allSignatures);
+app.get("/todos", async (req, res) => {
+  try {
+    const allToDos = await client.query("SELECT * FROM todos");
+    res.json(allToDos.rows);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error(err.message);
+    }
+  }
+});
+
+app.get("/todos/:id", async (req, res) => {
+  try {
+    const todoId = req.params.id;
+    const toDoById = await client.query("SELECT * FROM todos WHERE id = $1", [
+      parseInt(todoId),
+    ]);
+    res.json(toDoById.rows);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error(err.message);
+    }
+  }
 });
 
 // POST /items
-app.post<{}, {}, Task>("/items", (req, res) => {
-  // to be rigorous, ought to handle non-conforming request bodies
-  // ... but omitting this as a simplification
-  const postData = req.body;
-  const createdSignature = addTask(postData);
-  res.status(201).json(createdSignature);
-});
-
-// GET /items/:id
-app.get<{ id: string }>("/items/:id", (req, res) => {
-  const matchingSignature = getTaskById(parseInt(req.params.id));
-  if (matchingSignature === "not found") {
-    res.status(404).json(matchingSignature);
-  } else {
-    res.status(200).json(matchingSignature);
+app.post<{}, {}, Task>("/todos", async (req, res) => {
+  try {
+    const postData = req.body;
+    console.log(postData, res);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error(err.message);
+    }
   }
 });
 
-// DELETE /items/:id
-app.delete<{ id: string }>("/items/:id", (req, res) => {
-  const matchingSignature = getTaskById(parseInt(req.params.id));
-  if (matchingSignature === "not found") {
-    res.status(404).json(matchingSignature);
-  } else {
-    res.status(200).json(matchingSignature);
-  }
-});
-
-// PATCH /items/:id
-app.patch<{ id: string }, {}, Partial<Task>>("/items/:id", (req, res) => {
-  const matchingSignature = updateTaskById(parseInt(req.params.id), req.body);
-  if (matchingSignature === "not found") {
-    res.status(404).json(matchingSignature);
-  } else {
-    res.status(200).json(matchingSignature);
-  }
-});
-
-app.listen(PORT_NUMBER, () => {
-  console.log(`Server is listening on port ${PORT_NUMBER}!`);
-});
+export default app;
