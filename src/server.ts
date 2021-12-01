@@ -5,7 +5,8 @@ import { Client } from "pg";
 
 const app = express();
 const client = new Client({
-  connectionString: process.env.DATABASE_URL,
+  database: "tododb",
+  // connectionString: process.env.DATABASE_URL,
 });
 
 app.use(express.json());
@@ -27,8 +28,14 @@ export interface Task {
 // GET /items
 app.get("/todos", async (req, res) => {
   try {
-    const allToDos = await client.query("SELECT * FROM todos");
-    res.json(allToDos.rows);
+    const dbResult = await client.query("SELECT * FROM todos");
+    const todos = dbResult.rows;
+    res.status(200).json({
+      status: "succcess",
+      data: {
+        todos,
+      },
+    });
   } catch (err: unknown) {
     if (err instanceof Error) {
       console.error(err.message);
