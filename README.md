@@ -14,7 +14,7 @@ This is set up as a quick starter for a no-persistence RESTful Express API (usin
 yarn
 ```
 
-### Run server
+### Run server.
 ```
 yarn start
 ```
