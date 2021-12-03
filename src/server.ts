@@ -45,7 +45,7 @@ export interface Task {
 app.get("/todos", async (req, res) => {
   try {
     const dbResult = await client.query(
-      "SELECT * FROM todos ORDER BY due desc"
+      "SELECT * FROM todos ORDER BY due ASC, created ASC, name ASC"
     );
     const todos = dbResult.rows;
     res.status(200).json({
