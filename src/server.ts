@@ -155,10 +155,10 @@ app.put("/todos/name/:id", async (req, res) => {
 app.put("/todos/status/:id", async (req, res) => {
   try {
     const todoId = parseInt(req.params.id);
-    const newStatus = req.body.status;
+    // const newStatus = req.body.status;
     const updateTodo = await client.query(
-      "UPDATE todos SET status = $1 WHERE id = $2 RETURNING *",
-      [newStatus, todoId]
+      "UPDATE todos SET status = ABS(status -1) WHERE id = $1 RETURNING *",
+      [todoId]
     );
     if (updateTodo.rows.length === 1) {
       res.status(200).json({
